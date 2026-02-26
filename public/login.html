@@ -3,6 +3,31 @@
 <head>
   <title>Login - BotZone</title>
   <link rel="stylesheet" href="style.css">
+<script>
+const form = document.getElementById("loginForm");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  });
+
+  const text = await res.text();
+
+  if (text === "Login successful") {
+    // ✅ redirect to dashboard
+    window.location.href = `/dashboard.html?user=${username}`;
+  } else {
+    alert(text);
+  }
+});
+</script>
 </head>
 <body>
 <nav>

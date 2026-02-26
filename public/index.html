@@ -2,71 +2,11 @@
 <html>
 <head>
   <title>BotZone Panel</title>
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding-top: 100px;
-    }
-    h1 {
-      color: #38bdf8;
-    }
-    button {
-      padding: 15px 30px;
-      margin: 15px;
-      font-size: 18px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-    }
-    .start {
-      background: #22c55e;
-      color: black;
-    }
-    .stop {
-      background: #ef4444;
-      color: white;
-    }
-    .status {
-      margin-top: 20px;
-      font-size: 20px;
-    }
-  </style>
 </head>
 <body>
+  <h1>🤖 Welcome to BotZone Panel</h1>
+  <p>Your own Discord bot hosting panel</p>
 
-<h1>⚙ BotZone Hosting Panel</h1>
-<p>Control your bot like Pterodactyl</p>
-
-<button class="start" onclick="startBot()">Start Bot</button>
-<button class="stop" onclick="stopBot()">Stop Bot</button>
-
-<div class="status" id="status">Status: Loading...</div>
-
-<script>
-function updateStatus() {
-  fetch("/status")
-    .then(res => res.text())
-    .then(text => {
-      document.getElementById("status").innerText = "Status: " + text;
-    });
-}
-
-function startBot() {
-  fetch("/start").then(res => res.text()).then(alert);
-  setTimeout(updateStatus, 1000);
-}
-
-function stopBot() {
-  fetch("/stop").then(res => res.text()).then(alert);
-  setTimeout(updateStatus, 1000);
-}
-
-updateStatus();
-setInterval(updateStatus, 5000);
-</script>
-
+  <a href="login.html">Login / Register</a>
 </body>
 </html>

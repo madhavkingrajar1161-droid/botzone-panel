@@ -5,70 +5,22 @@
   <title>Dashboard - BotZone Panel</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Additional dashboard styles */
-    .dashboard-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
+    /* Dashboard extra styling */
+    .dashboard-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
+    .dashboard-header h1 { margin:0; }
 
-    .dashboard-header h1 {
-      margin: 0;
-    }
+    .instruction { display:flex; align-items:center; margin:10px 0; background:#38384d; padding:10px; border-radius:8px; }
+    .arrow { font-size:25px; margin-right:15px; color:#4f99ff; transform:rotate(90deg); }
 
-    .instruction {
-      display: flex;
-      align-items: center;
-      margin: 10px 0;
-      background: #38384d;
-      padding: 10px;
-      border-radius: 8px;
-    }
+    .bot-list { list-style:none; padding:0; }
+    .bot-card { background:#38384d; margin:10px 0; padding:12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+    .bot-card button { margin-left:5px; margin-top:5px; }
+    .bot-status { font-weight:bold; color:#fff; margin-left:10px; }
 
-    .arrow {
-      font-size: 25px;
-      margin-right: 15px;
-      color: #4f99ff;
-      transform: rotate(90deg);
-    }
+    .create-file { background:#38384d; padding:15px; border-radius:8px; margin-top:20px; }
+    .create-file input, .create-file textarea { width:100%; margin:5px 0; padding:8px; border-radius:6px; border:none; }
 
-    .bot-list {
-      list-style: none;
-      padding: 0;
-    }
-
-    .bot-card {
-      background: #38384d;
-      margin: 10px 0;
-      padding: 12px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .bot-card button {
-      margin-left: 5px;
-      margin-top: 5px;
-    }
-
-    .bot-status {
-      font-weight: bold;
-      color: #fff;
-      margin-left: 10px;
-    }
-
-    @media (max-width: 600px) {
-      .bot-card {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .bot-card span {
-        margin-top: 5px;
-      }
-    }
+    @media(max-width:600px) { .bot-card{ flex-direction:column; align-items:flex-start;} .bot-card span{ margin-top:5px; } }
   </style>
 </head>
 <body>
@@ -87,18 +39,9 @@
     </div>
 
     <!-- Instructions -->
-    <div class="instruction">
-      <div class="arrow">➤</div>
-      <p>Upload your bot (.js) using the form below.</p>
-    </div>
-    <div class="instruction">
-      <div class="arrow">➤</div>
-      <p>Your uploaded bots will appear in the list below.</p>
-    </div>
-    <div class="instruction">
-      <div class="arrow">➤</div>
-      <p>Click Start/Stop to manage your bots instantly.</p>
-    </div>
+    <div class="instruction"><div class="arrow">➤</div><p>Upload your bot (.js) using the form below.</p></div>
+    <div class="instruction"><div class="arrow">➤</div><p>Your uploaded bots will appear in the list below.</p></div>
+    <div class="instruction"><div class="arrow">➤</div><p>Click Start/Stop to manage your bots instantly.</p></div>
 
     <!-- Upload Form -->
     <h3>Upload Bot</h3>
@@ -108,101 +51,21 @@
       <button type="submit">Upload Bot</button>
     </form>
 
+    <!-- Create New File -->
+    <div class="create-file">
+      <h3>Create New File</h3>
+      <form id="createFileForm">
+        <input type="text" id="newFileName" placeholder="Filename (example.js)" required>
+        <textarea id="newFileContent" rows="5" placeholder="// Bot code here"></textarea>
+        <button type="submit">Create File</button>
+      </form>
+    </div>
+
     <!-- Bots List -->
     <h3>Uploaded Bots</h3>
-    <ul class="bot-list" id="botList">
-      <!-- Bot cards will be inserted dynamically -->
-    </ul>
+    <ul class="bot-list" id="botList"></ul>
   </div>
 
-  <script>
-    // Get username from URL query
-    const urlParams = new URLSearchParams(window.location.search);
-    const username = urlParams.get('user') || 'guest';
-    document.getElementById('usernameInput').value = username;
-
-    const panelStatus = document.getElementById('panelStatus');
-
-    // Show panel status
-    function loadPanelStatus(){
-      fetch('/status')
-        .then(res => res.json())
-        .then(data => {
-          panelStatus.textContent = `Panel Status: ${data.status}, Port: ${data.port}`;
-        });
-    }
-
-    // Load user's bots
-    function loadBots() {
-      fetch(`/bots/${username}`)
-        .then(res => res.json())
-        .then(bots => {
-          const list = document.getElementById('botList');
-          list.innerHTML = '';
-          if(bots.length === 0){
-            list.innerHTML = '<li>No bots uploaded yet.</li>';
-            return;
-          }
-          bots.forEach(bot => {
-            const li = document.createElement('li');
-            li.className = 'bot-card';
-            li.innerHTML = `
-              <span>${bot.name}</span>
-              <span>
-                <button onclick="startBot('${bot.name}')">Start</button>
-                <button onclick="stopBot('${bot.name}')">Stop</button>
-                <span class="bot-status">${bot.running ? 'Running' : 'Stopped'}</span>
-              </span>
-            `;
-            list.appendChild(li);
-          });
-        });
-    }
-
-    // Upload bot
-    document.getElementById('uploadForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      const formData = new FormData(this);
-      fetch('/upload', {
-        method: 'POST',
-        body: formData
-      }).then(res => res.text())
-      .then(msg => {
-        alert(msg);
-        loadBots();
-      });
-    });
-
-    // Start bot
-    function startBot(botname){
-      fetch('/start', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({username, botname})
-      }).then(res => res.text())
-      .then(msg => {
-        alert(msg);
-        loadBots();
-      });
-    }
-
-    // Stop bot
-    function stopBot(botname){
-      fetch('/stop', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({username, botname})
-      }).then(res => res.text())
-      .then(msg => {
-        alert(msg);
-        loadBots();
-      });
-    }
-
-    // Initial load
-    loadPanelStatus();
-    loadBots();
-    setInterval(loadPanelStatus, 10000); // update panel status every 10 sec
-  </script>
+  <script src="dashboard.js"></script>
 </body>
-      </html>
+</html>

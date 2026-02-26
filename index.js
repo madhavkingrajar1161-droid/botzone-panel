@@ -1,47 +1,83 @@
 const express = require("express");
+const fs = require("fs");
+const bcrypt = require("bcrypt");
+const multer = require("multer");
 const { spawn } = require("child_process");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const server = http.createServer(app);
+const io = new Server(server);
 
-let botProcess = null;
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-app.get("/start", (req, res) => {
-  if (botProcess) return res.send("Bot is already running.");
+const upload = multer({ dest: "bots/" });
+let bots = {};
+let users = JSON.parse(fs.readFileSync("users.json"));
 
-  botProcess = spawn("node", ["bot.js"]);
+function saveUsers() {
+  fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
+}
 
-  botProcess.stdout.on("data", data => {
-    console.log(`[BOT]: ${data}`);
-  });
-
-  botProcess.stderr.on("data", data => {
-    console.log(`[ERROR]: ${data}`);
-  });
-
-  botProcess.on("close", () => {
-    botProcess = null;
-    console.log("Bot stopped.");
-  });
-
-  res.send("Bot started successfully.");
+app.post("/register", async (req,res)=>{
+  const { username, password } = req.body;
+  if(users.find(u=>u.username===username)) return res.send("User exists");
+  const hash = await bcrypt.hash(password,10);
+  users.push({username,password:hash});
+  saveUsers();
+  res.send("Registered");
 });
 
-app.get("/stop", (req, res) => {
-  if (!botProcess) return res.send("Bot is not running.");
-
-  botProcess.kill();
-  botProcess = null;
-
-  res.send("Bot stopped successfully.");
+app.post("/login",(req,res)=>{
+  const { username, password } = req.body;
+  const user = users.find(u=>u.username===username);
+  if(!user) return res.send("Invalid user");
+  bcrypt.compare(password,user.password,(err,ok)=>{
+    if(ok) res.send("OK");
+    else res.send("Wrong password");
+  });
 });
 
-app.get("/status", (req, res) => {
-  res.send(botProcess ? "Running" : "Stopped");
+app.post("/upload", upload.single("bot"), (req,res)=>{
+  res.send("Bot uploaded");
 });
 
-app.listen(PORT, () => {
-  console.log(`BotZone Panel running on port ${PORT}`);
+app.get("/start/:name",(req,res)=>{
+  const name = req.params.name;
+  if(bots[name]) return res.send("Already running");
+
+  const bot = spawn("node", [`bots/${name}`]);
+  bots[name] = bot;
+
+  bot.stdout.on("data", data=>{
+    io.emit("log", data.toString());
+  });
+
+  bot.stderr.on("data", data=>{
+    io.emit("log", data.toString());
+  });
+
+  bot.on("close", ()=>{
+    delete bots[name];
+  });
+
+  res.send("Bot started");
+});
+
+app.get("/stop/:name",(req,res)=>{
+  if(!bots[req.params.name]) return res.send("Not running");
+  bots[req.params.name].kill();
+  delete bots[req.params.name];
+  res.send("Bot stopped");
+});
+
+io.on("connection",()=>{
+  console.log("User connected to console");
+});
+
+server.listen(process.env.PORT || 3000, ()=>{
+  console.log("BotZone Panel running");
 });

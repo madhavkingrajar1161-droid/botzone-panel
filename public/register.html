@@ -1,40 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Register - BotZone</title>
+<title>Register</title>
+<style>
+body{background:#0f172a;color:white;font-family:Arial}
+.card{width:300px;margin:120px auto;background:#1e293b;padding:20px;border-radius:10px}
+input,button{width:100%;padding:10px;margin-top:10px}
+button{background:#22c55e;border:none}
+</style>
 </head>
 <body>
-  <h2>Register</h2>
-
-  <form id="registerForm">
-    <input id="username" placeholder="Username" required><br><br>
-    <input id="password" type="password" placeholder="Password" required><br><br>
-    <button>Register</button>
-  </form>
-
-  <p id="msg"></p>
+<div class="card">
+<h2>Register</h2>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<button onclick="register()">Register</button>
+<p id="msg"></p>
+<a href="login.html" style="color:#38bdf8">Login</a>
+</div>
 
 <script>
-document.getElementById("registerForm").addEventListener("submit", async (e)=>{
-  e.preventDefault();
+async function register(){
+  const username=document.getElementById("username").value;
+  const password=document.getElementById("password").value;
 
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-
-  const res = await fetch("/register", {
+  const res=await fetch("/register",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({username,password})
   });
 
-  const text = await res.text();
+  const text=await res.text();
 
-  if(text === "Registered"){
-    window.location.href = "login.html";
-  } else {
-    document.getElementById("msg").innerText = text;
-  }
-});
+  if(text==="Registered") location.href="login.html";
+  else msg.innerText=text;
+}
 </script>
 </body>
 </html>

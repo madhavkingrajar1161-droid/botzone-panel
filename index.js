@@ -3,62 +3,54 @@ const path = require("path");
 const bcrypt = require("bcrypt");
 
 const app = express();
-
-// ===== CONFIG =====
 const PORT = process.env.PORT || 8080;
-const ADMIN_USERNAME = "admin"; // your admin username
 
-// In-memory storage (resets on redeploy)
+// Admin username
+const ADMIN_USERNAME = "admin";
+
+// Memory storage (resets on redeploy)
 let users = [];
 
-// ===== MIDDLEWARE =====
-app.use(express.json());
+// Middleware
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// ===== ROUTES =====
-
-// Home
+// صفحات
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-// Login page
 app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(__dirname, "public/login.html"));
 });
 
-// Register page
 app.get("/register", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "register.html"));
+  res.sendFile(path.join(__dirname, "public/register.html"));
 });
 
-// Dashboard
 app.get("/dashboard", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+  res.sendFile(path.join(__dirname, "public/dashboard.html"));
 });
 
-// Admin panel
 app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "admin.html"));
+  res.sendFile(path.join(__dirname, "public/admin.html"));
 });
 
 // Status
 app.get("/status", (req, res) => {
   res.json({
     status: "online",
-    message: "BotZone Panel is running",
-    port: PORT,
-    users: users.length
+    users: users.length,
+    port: PORT
   });
 });
 
-// ===== REGISTER =====
+// Register
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
-  if (!username || !password)
-    return res.send("Missing username or password");
+  if (!username || !password) return res.send("Missing fields");
 
   const exists = users.find(u => u.username === username);
   if (exists) return res.send("User already exists");
@@ -71,11 +63,11 @@ app.post("/register", async (req, res) => {
     isAdmin: username === ADMIN_USERNAME
   });
 
-  console.log("New user:", username);
+  console.log("Registered:", username);
   res.redirect("/login");
 });
 
-// ===== LOGIN =====
+// Login
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -85,42 +77,33 @@ app.post("/login", async (req, res) => {
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return res.send("Wrong password");
 
-  console.log("User logged in:", username);
+  console.log("Logged in:", username);
 
-  // Redirect admin to admin panel
-  if (user.isAdmin) {
-    return res.redirect("/admin");
-  } else {
-    return res.redirect("/dashboard");
-  }
+  if (user.isAdmin) return res.redirect("/admin");
+  res.redirect("/dashboard");
 });
 
-// ===== ADMIN API =====
-
-// List users
+// Admin APIs
 app.get("/admin/users", (req, res) => {
   res.json(users);
 });
 
-// Delete user
 app.post("/admin/delete", (req, res) => {
   const { username } = req.body;
-
   users = users.filter(u => u.username !== username);
-
-  console.log("Deleted user:", username);
+  console.log("Deleted:", username);
   res.redirect("/admin");
 });
 
-// ===== 404 =====
+// 404
 app.use((req, res) => {
-  res.status(404).send("404 - Page not found");
+  res.status(404).send("404 Not Found");
 });
 
-// ===== START SERVER =====
+// Start
 app.listen(PORT, () => {
-  console.log("==============================");
-  console.log(" BotZone Panel Running 🚀");
+  console.log("=================================");
+  console.log(" BotZone Panel Running");
   console.log(" Port:", PORT);
-  console.log("==============================");
+  console.log("=================================");
 });

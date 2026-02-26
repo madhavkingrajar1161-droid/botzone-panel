@@ -1,0 +1,34 @@
+<h1>BotZone Dashboard</h1>
+
+<input type="file" id="file">
+<button onclick="upload()">Upload Bot</button>
+
+<br><br>
+
+<input id="botname" placeholder="bot.js filename">
+<button onclick="start()">Start</button>
+<button onclick="stop()">Stop</button>
+
+<h3>Console</h3>
+<pre id="console"></pre>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+socket.on("log", data=>{
+  console.textContent += data;
+});
+
+function upload(){
+ const f = new FormData();
+ f.append("bot", file.files[0]);
+ fetch("/upload",{method:"POST",body:f}).then(r=>r.text()).then(alert);
+}
+
+function start(){
+ fetch("/start/"+botname.value).then(r=>r.text()).then(alert);
+}
+function stop(){
+ fetch("/stop/"+botname.value).then(r=>r.text()).then(alert);
+}
+</script>

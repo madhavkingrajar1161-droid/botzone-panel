@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login - BotZone</title>
+  <title>BotZone Login</title>
 </head>
 <body>
   <h2>Login</h2>
@@ -9,33 +9,35 @@
   <form id="loginForm">
     <input id="username" placeholder="Username" required><br><br>
     <input id="password" type="password" placeholder="Password" required><br><br>
-    <button type="submit">Login</button>
+    <button>Login</button>
   </form>
 
   <p id="msg"></p>
+  <a href="register.html">Register</a>
 
 <script>
-const form = document.getElementById("loginForm");
-const msg = document.getElementById("msg");
-
-form.addEventListener("submit", async function(e){
-  e.preventDefault(); // VERY IMPORTANT
+document.getElementById("loginForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
 
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
 
   const res = await fetch("/login", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ username, password })
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username,password})
   });
 
   const text = await res.text();
 
-  if (text.trim() === "Login successful") {
+  if(text === "Admin"){
+    window.location.href = "admin.html";
+  }
+  else if(text === "User"){
     window.location.href = "dashboard.html?user=" + username;
-  } else {
-    msg.innerText = text;
+  }
+  else{
+    document.getElementById("msg").innerText = text;
   }
 });
 </script>

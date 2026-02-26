@@ -1,151 +1,126 @@
 const express = require("express");
-const fs = require("fs");
-const multer = require("multer");
-const { spawn } = require("child_process");
+const path = require("path");
+const bcrypt = require("bcrypt");
 
 const app = express();
+
+// ===== CONFIG =====
 const PORT = process.env.PORT || 8080;
+const ADMIN_USERNAME = "admin"; // your admin username
 
+// In-memory storage (resets on redeploy)
+let users = [];
+
+// ===== MIDDLEWARE =====
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
 
-if (!fs.existsSync("bots")) fs.mkdirSync("bots");
+// ===== ROUTES =====
 
-const USERS_FILE = "./users.json";
-
-let runningBots = {};
-let botLogs = {};
-
-// ---------- USER FUNCTIONS ----------
-function loadUsers(){
-  if(!fs.existsSync(USERS_FILE)) return [];
-  return JSON.parse(fs.readFileSync(USERS_FILE));
-}
-function saveUsers(users){
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users,null,2));
-}
-
-// ---------- STATUS ----------
-app.get("/status",(req,res)=>{
-  res.json({status:"online",port:PORT});
+// Home
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ---------- REGISTER ----------
-app.post("/register",(req,res)=>{
-  const {username,password}=req.body;
-  let users = loadUsers();
-
-  if(users.find(u=>u.username===username))
-    return res.send("User exists");
-
-  users.push({username,password,admin:false});
-  saveUsers(users);
-
-  fs.mkdirSync(`bots/${username}`,{recursive:true});
-  res.send("Registered");
+// Login page
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// ---------- LOGIN ----------
-app.post("/login",(req,res)=>{
-  const {username,password}=req.body;
-  const users = loadUsers();
-
-  const user = users.find(u=>u.username===username && u.password===password);
-  if(!user) return res.send("Invalid");
-
-  if(user.admin) return res.send("Admin");
-  res.send("User");
+// Register page
+app.get("/register", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "register.html"));
 });
 
-// ---------- ADMIN: LIST USERS ----------
-app.get("/admin/users",(req,res)=>{
-  const users = loadUsers();
+// Dashboard
+app.get("/dashboard", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
+
+// Admin panel
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
+
+// Status
+app.get("/status", (req, res) => {
+  res.json({
+    status: "online",
+    message: "BotZone Panel is running",
+    port: PORT,
+    users: users.length
+  });
+});
+
+// ===== REGISTER =====
+app.post("/register", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password)
+    return res.send("Missing username or password");
+
+  const exists = users.find(u => u.username === username);
+  if (exists) return res.send("User already exists");
+
+  const hashed = await bcrypt.hash(password, 10);
+
+  users.push({
+    username,
+    password: hashed,
+    isAdmin: username === ADMIN_USERNAME
+  });
+
+  console.log("New user:", username);
+  res.redirect("/login");
+});
+
+// ===== LOGIN =====
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  const user = users.find(u => u.username === username);
+  if (!user) return res.send("User not found");
+
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) return res.send("Wrong password");
+
+  console.log("User logged in:", username);
+
+  // Redirect admin to admin panel
+  if (user.isAdmin) {
+    return res.redirect("/admin");
+  } else {
+    return res.redirect("/dashboard");
+  }
+});
+
+// ===== ADMIN API =====
+
+// List users
+app.get("/admin/users", (req, res) => {
   res.json(users);
 });
 
-// ---------- ADMIN: DELETE USER ----------
-app.post("/admin/deleteUser",(req,res)=>{
-  const {username}=req.body;
-  let users = loadUsers();
+// Delete user
+app.post("/admin/delete", (req, res) => {
+  const { username } = req.body;
 
-  users = users.filter(u=>u.username!==username);
-  saveUsers(users);
+  users = users.filter(u => u.username !== username);
 
-  if(fs.existsSync(`bots/${username}`))
-    fs.rmSync(`bots/${username}`,{recursive:true,force:true});
-
-  res.send("Deleted");
+  console.log("Deleted user:", username);
+  res.redirect("/admin");
 });
 
-// ---------- UPLOAD FILES ----------
-const storage = multer.diskStorage({
-  destination:(req,file,cb)=>{
-    const dir=`bots/${req.body.user}/${req.body.bot}`;
-    fs.mkdirSync(dir,{recursive:true});
-    cb(null,dir);
-  },
-  filename:(req,file,cb)=>cb(null,file.originalname)
-});
-const upload = multer({storage});
-
-app.post("/upload",upload.array("files"),(req,res)=>{
-  res.send("Uploaded");
+// ===== 404 =====
+app.use((req, res) => {
+  res.status(404).send("404 - Page not found");
 });
 
-// ---------- LIST BOTS ----------
-app.get("/bots/:user",(req,res)=>{
-  const dir=`bots/${req.params.user}`;
-  if(!fs.existsSync(dir)) return res.json([]);
-  res.json(fs.readdirSync(dir));
-});
-
-// ---------- START BOT ----------
-app.post("/start",(req,res)=>{
-  const {user,bot}=req.body;
-  const path=`bots/${user}/${bot}/index.js`;
-
-  if(!fs.existsSync(path)) return res.send("No index.js");
-
-  if(runningBots[bot]) return res.send("Already running");
-
-  const proc = spawn("node",[path]);
-  runningBots[bot]=proc;
-  botLogs[bot]="";
-
-  proc.stdout.on("data",d=>botLogs[bot]+=d.toString());
-  proc.stderr.on("data",d=>botLogs[bot]+=d.toString());
-  proc.on("close",()=>delete runningBots[bot]);
-
-  res.send("Started");
-});
-
-// ---------- STOP BOT ----------
-app.post("/stop",(req,res)=>{
-  const {bot}=req.body;
-  if(!runningBots[bot]) return res.send("Not running");
-
-  runningBots[bot].kill();
-  delete runningBots[bot];
-  res.send("Stopped");
-});
-
-// ---------- LOGS ----------
-app.get("/logs/:bot",(req,res)=>{
-  res.send(botLogs[req.params.bot]||"");
-});
-
-// ---------- ADMIN: DELETE BOT ----------
-app.post("/admin/deleteBot",(req,res)=>{
-  const {user,bot}=req.body;
-  const dir=`bots/${user}/${bot}`;
-
-  if(fs.existsSync(dir))
-    fs.rmSync(dir,{recursive:true,force:true});
-
-  res.send("Bot deleted");
-});
-
-// ---------- START SERVER ----------
-app.listen(PORT,()=>{
-  console.log("BotZone Hosting Panel running on port "+PORT);
+// ===== START SERVER =====
+app.listen(PORT, () => {
+  console.log("==============================");
+  console.log(" BotZone Panel Running 🚀");
+  console.log(" Port:", PORT);
+  console.log("==============================");
 });

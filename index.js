@@ -1,143 +1,143 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const bcrypt = require("bcrypt");
 const multer = require("multer");
-const { v4: uuidv4 } = require("uuid");
 const { spawn } = require("child_process");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// Ensure folders/files exist
-if (!fs.existsSync("users.json")) fs.writeFileSync("users.json", "[]");
-if (!fs.existsSync("bots")) fs.mkdirSync("bots");
+const botsDir = path.join(__dirname, "bots");
+if (!fs.existsSync(botsDir)) fs.mkdirSync(botsDir);
 
-// Multer storage for file uploads
+const runningBots = {}; // store running processes
+
+// ===== Multer storage (multi-file upload) =====
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const userPath = path.join("bots", req.body.username);
-    if (!fs.existsSync(userPath)) fs.mkdirSync(userPath, { recursive: true });
-    cb(null, userPath);
+    const { username, botname } = req.body;
+    const botPath = path.join(botsDir, username, botname);
+    fs.mkdirSync(botPath, { recursive: true });
+    cb(null, botPath);
   },
-  filename: (req, file, cb) => cb(null, file.originalname)
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  }
 });
+
 const upload = multer({ storage });
 
-// Running bots tracker
-const runningBots = {}; // { username_botname: child_process }
-
-// -------- ROUTES --------
-
-// Home page
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public/index.html")));
-
-// Status
+// ===== Status =====
 app.get("/status", (req, res) => {
   res.json({
     status: "online",
-    app: "BotZone Panel",
-    port: PORT,
-    time: new Date().toISOString()
+    port: PORT
   });
 });
 
-// Register
-app.post("/register", async (req, res) => {
-  const { username, password } = req.body;
-  if(!username || !password) return res.send("Missing fields");
+// ===== Upload bot (multiple files) =====
+app.post("/upload", upload.array("botfiles", 10), (req, res) => {
+  const { username, botname } = req.body;
+  if (!username || !botname) return res.send("Missing username or botname");
 
-  const users = JSON.parse(fs.readFileSync("users.json"));
-  if(users.find(u => u.username === username)) return res.send("User already exists");
-
-  const hash = await bcrypt.hash(password, 10);
-  users.push({ username, password: hash });
-  fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
-
-  fs.mkdirSync(`bots/${username}`, { recursive: true });
-  res.send("Registered successfully");
+  res.send(`Bot ${botname} uploaded successfully`);
 });
 
-// Login
-app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-  const users = JSON.parse(fs.readFileSync("users.json"));
-  const user = users.find(u => u.username === username);
-
-  if(!user) return res.send("User not found");
-  const ok = await bcrypt.compare(password, user.password);
-  if(!ok) return res.send("Wrong password");
-
-  res.redirect(`/dashboard.html?user=${username}`);
-});
-
-// Upload bot
-app.post("/upload", upload.single("botfile"), (req, res) => {
-  if(!req.file) return res.send("No file uploaded");
-  res.send("Bot uploaded successfully");
-});
-
-// Get user bots
+// ===== List bots =====
 app.get("/bots/:username", (req, res) => {
-  const userPath = path.join("bots", req.params.username);
-  if(!fs.existsSync(userPath)) return res.json([]);
-  const bots = fs.readdirSync(userPath);
-  const botStatus = bots.map(bot => ({
+  const userPath = path.join(botsDir, req.params.username);
+  if (!fs.existsSync(userPath)) return res.json([]);
+
+  const bots = fs.readdirSync(userPath).map(bot => ({
     name: bot,
-    running: runningBots[`${req.params.username}_${bot}`] ? true : false
+    running: !!runningBots[`${req.params.username}_${bot}`]
   }));
-  res.json(botStatus);
+
+  res.json(bots);
 });
 
-// Start bot
+// ===== Start bot =====
 app.post("/start", (req, res) => {
   const { username, botname } = req.body;
-  const botPath = path.join(__dirname, "bots", username, botname);
-  if(!fs.existsSync(botPath)) return res.send("Bot not found");
-  const key = `${username}_${botname}`;
-  if(runningBots[key]) return res.send("Bot already running");
+  const botPath = path.join(botsDir, username, botname);
 
-  const child = spawn("node", [botPath], { stdio: "ignore", detached: true });
-  child.unref();
-  runningBots[key] = child;
-  res.send("Bot started");
+  if (!fs.existsSync(botPath)) return res.send("Bot not found");
+
+  const key = `${username}_${botname}`;
+  if (runningBots[key]) return res.send("Bot already running");
+
+  console.log("Installing dependencies for", botname);
+
+  const npmInstall = spawn("npm", ["install"], { cwd: botPath, shell: true });
+
+  npmInstall.stdout.on("data", data => console.log(`[npm install] ${data}`));
+  npmInstall.stderr.on("data", data => console.error(`[npm install error] ${data}`));
+
+  npmInstall.on("close", () => {
+    console.log("Starting bot:", botname);
+
+    const botProcess = spawn("node", ["bot.js"], { cwd: botPath, shell: true });
+
+    runningBots[key] = botProcess;
+
+    botProcess.stdout.on("data", data => console.log(`[${botname}] ${data}`));
+    botProcess.stderr.on("data", data => console.error(`[${botname} ERROR] ${data}`));
+
+    botProcess.on("close", () => {
+      console.log(`${botname} stopped`);
+      delete runningBots[key];
+    });
+
+    res.send(`Bot ${botname} started`);
+  });
 });
 
-// Stop bot
+// ===== Stop bot =====
 app.post("/stop", (req, res) => {
   const { username, botname } = req.body;
   const key = `${username}_${botname}`;
-  const child = runningBots[key];
-  if(!child) return res.send("Bot not running");
 
-  process.kill(-child.pid);
+  if (!runningBots[key]) return res.send("Bot is not running");
+
+  runningBots[key].kill();
   delete runningBots[key];
-  res.send("Bot stopped");
+
+  res.send(`Bot ${botname} stopped`);
 });
 
-// Create new file
+// ===== Create file inside bot folder =====
 app.post("/create-file", (req, res) => {
-  const { username, filename, content } = req.body;
-  if(!username || !filename) return res.send("Missing username or filename");
+  const { username, botname, filename, content } = req.body;
 
-  const userPath = path.join("bots", username);
-  if(!fs.existsSync(userPath)) fs.mkdirSync(userPath, { recursive: true });
+  const filePath = path.join(botsDir, username, botname, filename);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
-  const filePath = path.join(userPath, filename);
-  if(fs.existsSync(filePath)) return res.send("File already exists");
-
-  fs.writeFileSync(filePath, content || '');
-  res.send(`File ${filename} created successfully`);
+  fs.writeFileSync(filePath, content || "");
+  res.send("File created");
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log("==================================");
-  console.log("BotZone Panel is running");
-  console.log("Listening on PORT:", PORT);
-  console.log("==================================");
+// ===== Get file =====
+app.get("/get-file/:username/:botname/:filename", (req, res) => {
+  const filePath = path.join(botsDir, req.params.username, req.params.botname, req.params.filename);
+  if (!fs.existsSync(filePath)) return res.send("File not found");
+
+  res.send(fs.readFileSync(filePath, "utf8"));
+});
+
+// ===== Edit file =====
+app.post("/edit-file", (req, res) => {
+  const { username, botname, filename, content } = req.body;
+  const filePath = path.join(botsDir, username, botname, filename);
+
+  fs.writeFileSync(filePath, content);
+  res.send("File saved");
+});
+
+// ===== Server start =====
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("✅ BotZone Panel running on port", PORT);
 });

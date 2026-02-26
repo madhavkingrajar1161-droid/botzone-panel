@@ -1,24 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Login</title>
+<title>BotZone Hosting</title>
 <style>
-body{background:#0f172a;color:white;font-family:Arial}
-.box{background:#020617;padding:30px;border-radius:12px;width:300px;margin:100px auto;text-align:center}
-input{width:90%;padding:10px;margin:10px;border-radius:6px;border:none}
-button{background:#38bdf8;padding:10px 20px;border:none;border-radius:8px;cursor:pointer}
-a{color:#38bdf8}
+body{margin:0;font-family:Arial;background:#0f172a;color:white}
+header{background:#020617;padding:15px;display:flex;justify-content:space-between}
+a{color:#38bdf8;text-decoration:none;margin-left:15px}
+.hero{text-align:center;padding:80px 20px}
+.hero h1{color:#38bdf8;font-size:40px}
+button{padding:12px 25px;border:none;border-radius:8px;margin:10px;font-size:16px;cursor:pointer}
+.login{background:#38bdf8}
+.register{background:#22c55e}
+.steps{display:flex;justify-content:center;gap:30px;margin:60px;flex-wrap:wrap}
+.step{background:#020617;padding:20px;border-radius:12px;width:200px}
+.arrow{font-size:40px;margin-top:60px}
+footer{text-align:center;padding:15px;background:#020617}
 </style>
 </head>
 <body>
-<div class="box">
-<h2>Login</h2>
-<form action="/login" method="POST">
-<input name="username" placeholder="Username" required>
-<input name="password" type="password" placeholder="Password" required>
-<button type="submit">Login</button>
-</form>
-<p><a href="/register">Register</a></p>
+
+<header>
+<h2>BotZone</h2>
+<div>
+<a href="/login">Login</a>
+<a href="/register">Register</a>
 </div>
+</header>
+
+<div class="hero">
+<h1>Free Discord Bot Hosting</h1>
+<p>Host your Discord bots 24/7 for free</p>
+<button class="login" onclick="location.href='/login'">Login</button>
+<button class="register" onclick="location.href='/register'">Register</button>
+</div>
+
+<div class="steps">
+<div class="step"><h3>1️⃣ Create Bot</h3><p>Create bot on Discord.</p></div>
+<div class="arrow">➡️</div>
+<div class="step"><h3>2️⃣ Upload Files</h3><p>Upload your bot files.</p></div>
+<div class="arrow">➡️</div>
+<div class="step"><h3>3️⃣ Run 24/7</h3><p>Start and keep online.</p></div>
+</div>
+
+<footer>© BotZone Panel</footer>
 </body>
 </html>

@@ -1,22 +1,21 @@
-<h2>BotZone Login</h2>
-<input id="u" placeholder="Username"><br>
-<input id="p" placeholder="Password" type="password"><br>
-<button onclick="login()">Login</button>
-<button onclick="register()">Register</button>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login - BotZone</title>
+</head>
+<body>
+  <h2>Register</h2>
+  <form action="/register" method="POST">
+    <input name="username" placeholder="Username" required><br>
+    <input name="password" type="password" placeholder="Password" required><br>
+    <button type="submit">Register</button>
+  </form>
 
-<script>
-function login(){
- fetch("/login",{method:"POST",headers:{"Content-Type":"application/json"},
- body:JSON.stringify({username:u.value,password:p.value})})
- .then(r=>r.text()).then(t=>{
-   if(t=="OK") location.href="dashboard.html";
-   else alert(t);
- });
-}
-
-function register(){
- fetch("/register",{method:"POST",headers:{"Content-Type":"application/json"},
- body:JSON.stringify({username:u.value,password:p.value})})
- .then(r=>r.text()).then(alert);
-}
-</script>
+  <h2>Login</h2>
+  <form action="/login" method="POST">
+    <input name="username" placeholder="Username" required><br>
+    <input name="password" type="password" placeholder="Password" required><br>
+    <button type="submit">Login</button>
+  </form>
+</body>
+</html>

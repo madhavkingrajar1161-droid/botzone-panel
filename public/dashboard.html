@@ -3,6 +3,25 @@
 <head>
   <title>Dashboard - BotZone</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Arrow instructions styles */
+    .instruction {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+    }
+    .arrow {
+      font-size: 30px;
+      margin-right: 15px;
+      color: #4f99ff;
+      transform: rotate(90deg);
+    }
+    .instruction p {
+      margin: 0;
+      font-size: 16px;
+      color: #ddd;
+    }
+  </style>
 </head>
 <body>
 <nav>
@@ -15,6 +34,23 @@
 
 <div class="container">
   <h1>Your Dashboard</h1>
+
+  <!-- Instructions -->
+  <div class="instruction">
+    <div class="arrow">➤</div>
+    <p>Step 1: Upload your bot file using the form below.</p>
+  </div>
+
+  <div class="instruction">
+    <div class="arrow">➤</div>
+    <p>Step 2: After upload, your bot will appear in the "Uploaded Bots" list.</p>
+  </div>
+
+  <div class="instruction">
+    <div class="arrow">➤</div>
+    <p>Step 3: Monitor your bot's status via the panel.</p>
+  </div>
+
   <h3>Upload your bot (.js)</h3>
   <form action="/upload" method="POST" enctype="multipart/form-data">
     <input type="file" name="botfile" required>
@@ -28,7 +64,7 @@
 </div>
 
 <script>
-  // Fetch bots for now (simple demo)
+  // Fetch bots and show status
   fetch('/status')
     .then(res => res.json())
     .then(data => {

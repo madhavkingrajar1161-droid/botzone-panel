@@ -1,0 +1,74 @@
+/* Modern clean panel styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #1f1f2e;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: #4f99ff;
+  text-decoration: none;
+}
+
+h1, h2, h3 {
+  color: #fff;
+}
+
+.container {
+  width: 90%;
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #2b2b3e;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+}
+
+input, button {
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+  border: none;
+}
+
+input {
+  width: 100%;
+}
+
+button {
+  background: #4f99ff;
+  color: #fff;
+  cursor: pointer;
+  width: 100%;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #3676e6;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 30px;
+  background: #2b2b3e;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+nav a {
+  margin-left: 20px;
+}
+
+.bot-list {
+  list-style: none;
+  padding: 0;
+}
+
+.bot-list li {
+  background: #38384d;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 5px;
+}

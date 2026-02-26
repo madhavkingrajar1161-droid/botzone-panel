@@ -5,21 +5,20 @@
   <title>Dashboard - BotZone Panel</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Dashboard extra styling */
-    .dashboard-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
-    .dashboard-header h1 { margin:0; }
-
+    /* Dashboard styling */
+    body { background:#1e1e2f; color:#fff; font-family:Arial, sans-serif; margin:0; padding:0; }
+    nav { background:#2a2a3e; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; }
+    nav a { color:#4f99ff; margin-left:15px; text-decoration:none; }
+    .container { padding:20px; max-width:900px; margin:auto; }
+    .dashboard-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
     .instruction { display:flex; align-items:center; margin:10px 0; background:#38384d; padding:10px; border-radius:8px; }
     .arrow { font-size:25px; margin-right:15px; color:#4f99ff; transform:rotate(90deg); }
-
     .bot-list { list-style:none; padding:0; }
     .bot-card { background:#38384d; margin:10px 0; padding:12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
-    .bot-card button { margin-left:5px; margin-top:5px; }
+    .bot-card button { margin-left:5px; margin-top:5px; cursor:pointer; padding:5px 10px; border:none; border-radius:5px; background:#4f99ff; color:#fff; }
     .bot-status { font-weight:bold; color:#fff; margin-left:10px; }
-
     .create-file { background:#38384d; padding:15px; border-radius:8px; margin-top:20px; }
     .create-file input, .create-file textarea { width:100%; margin:5px 0; padding:8px; border-radius:6px; border:none; }
-
     @media(max-width:600px) { .bot-card{ flex-direction:column; align-items:flex-start;} .bot-card span{ margin-top:5px; } }
   </style>
 </head>

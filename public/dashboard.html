@@ -3,55 +3,22 @@
 <head>
   <title>Dashboard - BotZone</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    /* Arrow instructions styles */
-    .instruction {
-      display: flex;
-      align-items: center;
-      margin: 20px 0;
-    }
-    .arrow {
-      font-size: 30px;
-      margin-right: 15px;
-      color: #4f99ff;
-      transform: rotate(90deg);
-    }
-    .instruction p {
-      margin: 0;
-      font-size: 16px;
-      color: #ddd;
-    }
-  </style>
 </head>
 <body>
 <nav>
   <div><strong>BotZone Panel</strong></div>
-  <div>
-    <a href="/">Home</a>
-    <a href="login.html">Logout</a>
-  </div>
+  <div><a href="/">Home</a> <a href="login.html">Logout</a></div>
 </nav>
 
 <div class="container">
   <h1>Your Dashboard</h1>
 
-  <!-- Instructions -->
-  <div class="instruction">
-    <div class="arrow">➤</div>
-    <p>Step 1: Upload your bot file using the form below.</p>
-  </div>
+  <h3>Instructions:</h3>
+  <div class="instruction"><div class="arrow">➤</div><p>Upload your bot (.js) file below.</p></div>
+  <div class="instruction"><div class="arrow">➤</div><p>Your uploaded bots will appear in the list.</p></div>
+  <div class="instruction"><div class="arrow">➤</div><p>Use Start/Stop buttons to manage your bots (coming soon!).</p></div>
 
-  <div class="instruction">
-    <div class="arrow">➤</div>
-    <p>Step 2: After upload, your bot will appear in the "Uploaded Bots" list.</p>
-  </div>
-
-  <div class="instruction">
-    <div class="arrow">➤</div>
-    <p>Step 3: Monitor your bot's status via the panel.</p>
-  </div>
-
-  <h3>Upload your bot (.js)</h3>
+  <h3>Upload Bot</h3>
   <form action="/upload" method="POST" enctype="multipart/form-data">
     <input type="file" name="botfile" required>
     <button type="submit">Upload Bot</button>
@@ -64,7 +31,6 @@
 </div>
 
 <script>
-  // Fetch bots and show status
   fetch('/status')
     .then(res => res.json())
     .then(data => {

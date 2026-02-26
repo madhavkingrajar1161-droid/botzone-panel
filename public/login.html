@@ -1,0 +1,22 @@
+<h2>BotZone Login</h2>
+<input id="u" placeholder="Username"><br>
+<input id="p" placeholder="Password" type="password"><br>
+<button onclick="login()">Login</button>
+<button onclick="register()">Register</button>
+
+<script>
+function login(){
+ fetch("/login",{method:"POST",headers:{"Content-Type":"application/json"},
+ body:JSON.stringify({username:u.value,password:p.value})})
+ .then(r=>r.text()).then(t=>{
+   if(t=="OK") location.href="dashboard.html";
+   else alert(t);
+ });
+}
+
+function register(){
+ fetch("/register",{method:"POST",headers:{"Content-Type":"application/json"},
+ body:JSON.stringify({username:u.value,password:p.value})})
+ .then(r=>r.text()).then(alert);
+}
+</script>

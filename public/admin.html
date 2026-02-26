@@ -4,40 +4,39 @@
 <title>Admin Panel</title>
 <style>
 body{background:#0f172a;color:white;font-family:Arial}
-.card{background:#1e293b;padding:15px;border-radius:10px;margin:20px}
-button{background:red;color:white;padding:5px}
+header{background:#020617;padding:15px;text-align:center}
+.container{padding:20px}
+.user{background:#020617;padding:15px;border-radius:10px;margin:10px}
+button{background:#ef4444;padding:6px 12px;border:none;border-radius:6px;color:white}
 </style>
 </head>
 <body>
 
-<h2>Admin Panel</h2>
+<header><h2>Admin Panel</h2></header>
 
-<div class="card">
-<h3>Users</h3>
-<ul id="users"></ul>
+<div class="container">
+<button onclick="loadUsers()">Load Users</button>
+<div id="users"></div>
 </div>
 
 <script>
 async function loadUsers(){
-  const res=await fetch("/admin/users");
-  const users=await res.json();
-  usersEl.innerHTML="";
-  users.forEach(u=>{
-    usersEl.innerHTML+=`
-    <li>${u.username}
-    <button onclick="deleteUser('${u.username}')">Delete</button>
-    </li>`;
-  });
+const res = await fetch("/admin/users");
+const users = await res.json();
+const div = document.getElementById("users");
+div.innerHTML="";
+users.forEach(u=>{
+div.innerHTML += `
+<div class="user">
+${u.username}
+<form action="/admin/delete" method="POST">
+<input type="hidden" name="username" value="${u.username}">
+<button>Delete</button>
+</form>
+</div>`;
+});
 }
-
-async function deleteUser(username){
-  await fetch("/admin/deleteUser",{method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({username})});
-  loadUsers();
-}
-
-loadUsers();
 </script>
+
 </body>
 </html>

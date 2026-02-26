@@ -1,0 +1,12 @@
+{
+  "name": "botzone-panel",
+  "version": "1.0.0",
+  "description": "BotZone Discord Bot Hosting Panel",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

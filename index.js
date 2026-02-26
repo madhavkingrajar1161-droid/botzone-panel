@@ -15,76 +15,61 @@ let runningBots = {};
 let botLogs = {};
 
 // ---------- STATUS ----------
-app.get("/status", (req,res)=>{
-  res.json({status:"online", port:PORT});
+app.get("/status",(req,res)=>{
+  res.json({status:"online",port:PORT});
 });
 
-// ---------- UPLOAD ----------
+// ---------- CREATE BOT ----------
+app.post("/createBot",(req,res)=>{
+  const {user,bot} = req.body;
+  const dir = `bots/${user}/${bot}`;
+  if(fs.existsSync(dir)) return res.send("Bot already exists");
+  fs.mkdirSync(dir,{recursive:true});
+  fs.writeFileSync(`${dir}/index.js`,`console.log("Bot started");`);
+  res.send("Created");
+});
+
+// ---------- UPLOAD FILES ----------
 const storage = multer.diskStorage({
-  destination: (req,file,cb)=>{
-    const user = req.body.username;
-    const dir = `bots/${user}`;
+  destination:(req,file,cb)=>{
+    const dir=`bots/${req.body.user}/${req.body.bot}`;
     if(!fs.existsSync(dir)) fs.mkdirSync(dir,{recursive:true});
-    cb(null, dir);
+    cb(null,dir);
   },
-  filename: (req,file,cb)=>{
-    cb(null,file.originalname);
-  }
+  filename:(req,file,cb)=>cb(null,file.originalname)
 });
 const upload = multer({storage});
 
-app.post("/upload", upload.array("files"), (req,res)=>{
+app.post("/upload",upload.array("files"),(req,res)=>{
   res.send("Uploaded");
 });
 
 // ---------- LIST BOTS ----------
 app.get("/bots/:user",(req,res)=>{
-  const dir = `bots/${req.params.user}`;
+  const dir=`bots/${req.params.user}`;
   if(!fs.existsSync(dir)) return res.json([]);
   res.json(fs.readdirSync(dir));
 });
 
+// ---------- LIST FILES ----------
+app.get("/files/:user/:bot",(req,res)=>{
+  const dir=`bots/${req.params.user}/${req.params.bot}`;
+  if(!fs.existsSync(dir)) return res.json([]);
+  res.json(fs.readdirSync(dir));
+});
+
+// ---------- READ FILE ----------
+app.get("/file/:user/:bot/:file",(req,res)=>{
+  const path=`bots/${req.params.user}/${req.params.bot}/${req.params.file}`;
+  res.send(fs.readFileSync(path,"utf8"));
+});
+
+// ---------- SAVE FILE ----------
+app.post("/saveFile",(req,res)=>{
+  const {user,bot,file,content}=req.body;
+  fs.writeFileSync(`bots/${user}/${bot}/${file}`,content);
+  res.send("Saved");
+});
+
 // ---------- START BOT ----------
-app.post("/start",(req,res)=>{
-  const {user,file} = req.body;
-  const path = `bots/${user}/${file}`;
-
-  if(!fs.existsSync(path)) return res.send("File not found");
-  if(runningBots[file]) return res.send("Already running");
-
-  const proc = spawn("node",[path]);
-  runningBots[file] = proc;
-  botLogs[file] = "";
-
-  proc.stdout.on("data",data=>{
-    botLogs[file] += data.toString();
-  });
-  proc.stderr.on("data",data=>{
-    botLogs[file] += data.toString();
-  });
-  proc.on("close",()=>{
-    delete runningBots[file];
-  });
-
-  res.send("Started");
-});
-
-// ---------- STOP BOT ----------
-app.post("/stop",(req,res)=>{
-  const {file} = req.body;
-  if(!runningBots[file]) return res.send("Not running");
-
-  runningBots[file].kill();
-  delete runningBots[file];
-  res.send("Stopped");
-});
-
-// ---------- LOGS ----------
-app.get("/logs/:file",(req,res)=>{
-  res.send(botLogs[req.params.file] || "");
-});
-
-// ---------- START SERVER ----------
-app.listen(PORT,()=>{
-  console.log("BotZone Panel running on port "+PORT);
-});
+app.post("/start",(req,res

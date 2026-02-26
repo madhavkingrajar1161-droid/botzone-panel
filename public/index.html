@@ -1,128 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>BotZone Host</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<title>BotZone Hosting</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+}
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #0b1220, #020617);
-      color: white;
-      text-align: center;
-    }
+header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #020617;
+}
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 20px;
-    }
+header h1 {
+  color: #38bdf8;
+}
 
-    .logo {
-      font-size: 20px;
-      font-weight: bold;
-      color: #7dd3fc;
-    }
+nav a {
+  color: white;
+  margin-left: 15px;
+  text-decoration: none;
+  font-weight: bold;
+}
 
-    .nav-buttons button {
-      background: transparent;
-      border: 2px solid #38bdf8;
-      color: #38bdf8;
-      padding: 8px 15px;
-      border-radius: 25px;
-      margin-left: 10px;
-      cursor: pointer;
-    }
+.hero {
+  text-align: center;
+  padding: 80px 20px;
+}
 
-    .hero {
-      margin-top: 60px;
-      padding: 20px;
-    }
+.hero h2 {
+  font-size: 42px;
+  color: #38bdf8;
+}
 
-    .hero h1 {
-      font-size: 42px;
-      background: linear-gradient(to right, #60a5fa, #34d399);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+.hero p {
+  font-size: 18px;
+  color: #cbd5f5;
+}
 
-    .hero h2 {
-      margin-top: 15px;
-      font-size: 20px;
-      color: #cbd5f5;
-    }
+.hero button {
+  padding: 15px 30px;
+  margin: 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
 
-    .hero p {
-      margin-top: 20px;
-      color: #94a3b8;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-      line-height: 1.5;
-    }
+.login {
+  background: #38bdf8;
+  color: black;
+}
 
-    .cta {
-      margin-top: 40px;
-    }
+.register {
+  background: #22c55e;
+  color: black;
+}
 
-    .cta button {
-      background: linear-gradient(to right, #6366f1, #22c55e);
-      border: none;
-      padding: 18px 50px;
-      border-radius: 50px;
-      font-size: 20px;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 0 20px rgba(99,102,241,0.6);
-    }
+.steps {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 60px;
+  flex-wrap: wrap;
+}
 
-    .features {
-      margin-top: 50px;
-      color: #a5b4fc;
-    }
+.step {
+  background: #020617;
+  padding: 20px;
+  border-radius: 12px;
+  width: 220px;
+  box-shadow: 0 0 10px rgba(56,189,248,0.3);
+}
 
-    footer {
-      margin-top: 80px;
-      padding: 20px;
-      color: #64748b;
-      font-size: 14px;
-    }
-  </style>
+.step h3 {
+  color: #38bdf8;
+}
+
+.arrow {
+  font-size: 40px;
+  color: #38bdf8;
+  margin-top: 70px;
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  margin-top: 60px;
+  background: #020617;
+  color: #94a3b8;
+}
+</style>
 </head>
-
 <body>
 
 <header>
-  <div class="logo">🚀 BotZoneHost</div>
-  <div class="nav-buttons">
-    <button onclick="location.href='login.html'">Login</button>
-    <button onclick="location.href='register.html'">Menu</button>
-  </div>
+  <h1>BotZone</h1>
+  <nav>
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+  </nav>
 </header>
 
-<div class="hero">
-  <h1>Free Bot Hosting</h1>
-  <h2>⚡ Discord Bots & Game Servers</h2>
+<section class="hero">
+  <h2>Free Discord Bot Hosting</h2>
+  <p>Host your Discord bots 24/7 for free with BotZone Panel</p>
 
-  <p>
-    Create powerful, lag-free Discord bots at zero cost.
-    Premium performance, unlimited possibilities, completely free forever.
-  </p>
+  <button class="login" onclick="location.href='/login'">Login</button>
+  <button class="register" onclick="location.href='/register'">Register</button>
+</section>
 
-  <div class="cta">
-    <button onclick="location.href='register.html'">Start Your Bot</button>
+<section class="steps">
+  <div class="step">
+    <h3>1️⃣ Create Bot</h3>
+    <p>Create your Discord bot on Discord Developer Portal.</p>
   </div>
 
-  <div class="features">
-    ⚡ Discord Bot Hosting • 💻 Node.js • ☁ 24/7 Uptime
+  <div class="arrow">➡️</div>
+
+  <div class="step">
+    <h3>2️⃣ Upload Files</h3>
+    <p>Upload your bot files and token into BotZone Panel.</p>
   </div>
-</div>
+
+  <div class="arrow">➡️</div>
+
+  <div class="step">
+    <h3>3️⃣ Run 24/7</h3>
+    <p>Start your bot and keep it online forever.</p>
+  </div>
+</section>
 
 <footer>
-  © 2026 BotZoneHost — Inspired by FreeGameHost.xyz
+  <p>© 2026 BotZone Hosting Panel | Inspired by Freegamehost</p>
 </footer>
 
 </body>

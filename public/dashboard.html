@@ -2,17 +2,41 @@
 <html>
 <head>
   <title>Dashboard - BotZone</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>BotZone Dashboard</h1>
+<nav>
+  <div><strong>BotZone Panel</strong></div>
+  <div>
+    <a href="/">Home</a>
+    <a href="login.html">Logout</a>
+  </div>
+</nav>
 
-  <h3>Upload your bot file (.js)</h3>
+<div class="container">
+  <h1>Your Dashboard</h1>
+  <h3>Upload your bot (.js)</h3>
   <form action="/upload" method="POST" enctype="multipart/form-data">
     <input type="file" name="botfile" required>
     <button type="submit">Upload Bot</button>
   </form>
 
-  <br>
-  <a href="/">Home</a>
+  <h3>Uploaded Bots</h3>
+  <ul class="bot-list" id="botList">
+    <!-- Bots will appear here -->
+  </ul>
+</div>
+
+<script>
+  // Fetch bots for now (simple demo)
+  fetch('/status')
+    .then(res => res.json())
+    .then(data => {
+      const list = document.getElementById('botList');
+      const li = document.createElement('li');
+      li.textContent = `Panel status: ${data.status}, port: ${data.port}`;
+      list.appendChild(li);
+    });
+</script>
 </body>
 </html>

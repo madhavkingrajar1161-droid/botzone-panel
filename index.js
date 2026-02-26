@@ -36,7 +36,14 @@ app.post("/register", async (req, res) => {
   if (users.find(u => u.username === username)) {
     return res.send("User already exists");
   }
-
+app.get("/status", (req, res) => {
+  res.json({
+    status: "online",
+    app: "BotZone Panel",
+    time: new Date().toISOString()
+  });
+});
+  
   const hashed = await bcrypt.hash(password, 10);
   users.push({ username, password: hashed });
   fs.writeFileSync("users.json", JSON.stringify(users, null, 2));

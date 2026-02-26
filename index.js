@@ -1,83 +1,68 @@
 const express = require("express");
 const fs = require("fs");
+const path = require("path");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
-const { spawn } = require("child_process");
-const http = require("http");
-const { Server } = require("socket.io");
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const PORT = process.env.PORT || 3000;
 
+// middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-const upload = multer({ dest: "bots/" });
-let bots = {};
-let users = JSON.parse(fs.readFileSync("users.json"));
+// ensure folders exist
+if (!fs.existsSync("bots")) fs.mkdirSync("bots");
+if (!fs.existsSync("users.json")) fs.writeFileSync("users.json", "[]");
 
-function saveUsers() {
+// storage for bots
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "bots"),
+  filename: (req, file, cb) => cb(null, uuidv4() + "-" + file.originalname)
+});
+const upload = multer({ storage });
+
+// routes
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/index.html"));
+});
+
+app.post("/register", async (req, res) => {
+  const { username, password } = req.body;
+  const users = JSON.parse(fs.readFileSync("users.json"));
+
+  if (users.find(u => u.username === username)) {
+    return res.send("User already exists");
+  }
+
+  const hashed = await bcrypt.hash(password, 10);
+  users.push({ username, password: hashed });
   fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
-}
 
-app.post("/register", async (req,res)=>{
+  fs.mkdirSync(`bots/${username}`, { recursive: true });
+
+  res.redirect("/login.html");
+});
+
+app.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  if(users.find(u=>u.username===username)) return res.send("User exists");
-  const hash = await bcrypt.hash(password,10);
-  users.push({username,password:hash});
-  saveUsers();
-  res.send("Registered");
+  const users = JSON.parse(fs.readFileSync("users.json"));
+
+  const user = users.find(u => u.username === username);
+  if (!user) return res.send("User not found");
+
+  const ok = await bcrypt.compare(password, user.password);
+  if (!ok) return res.send("Wrong password");
+
+  res.redirect("/dashboard.html");
 });
 
-app.post("/login",(req,res)=>{
-  const { username, password } = req.body;
-  const user = users.find(u=>u.username===username);
-  if(!user) return res.send("Invalid user");
-  bcrypt.compare(password,user.password,(err,ok)=>{
-    if(ok) res.send("OK");
-    else res.send("Wrong password");
-  });
+app.post("/upload", upload.single("botfile"), (req, res) => {
+  res.send("Bot uploaded successfully");
 });
 
-app.post("/upload", upload.single("bot"), (req,res)=>{
-  res.send("Bot uploaded");
-});
-
-app.get("/start/:name",(req,res)=>{
-  const name = req.params.name;
-  if(bots[name]) return res.send("Already running");
-
-  const bot = spawn("node", [`bots/${name}`]);
-  bots[name] = bot;
-
-  bot.stdout.on("data", data=>{
-    io.emit("log", data.toString());
-  });
-
-  bot.stderr.on("data", data=>{
-    io.emit("log", data.toString());
-  });
-
-  bot.on("close", ()=>{
-    delete bots[name];
-  });
-
-  res.send("Bot started");
-});
-
-app.get("/stop/:name",(req,res)=>{
-  if(!bots[req.params.name]) return res.send("Not running");
-  bots[req.params.name].kill();
-  delete bots[req.params.name];
-  res.send("Bot stopped");
-});
-
-io.on("connection",()=>{
-  console.log("User connected to console");
-});
-
-server.listen(process.env.PORT || 3000, ()=>{
-  console.log("BotZone Panel running");
+app.listen(PORT, () => {
+  console.log("BotZone Panel running on port " + PORT);
 });

@@ -5,7 +5,6 @@
   <title>Dashboard - BotZone Panel</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Dashboard styling */
     body { background:#1e1e2f; color:#fff; font-family:Arial, sans-serif; margin:0; padding:0; }
     nav { background:#2a2a3e; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; }
     nav a { color:#4f99ff; margin-left:15px; text-decoration:none; }
@@ -17,54 +16,62 @@
     .bot-card { background:#38384d; margin:10px 0; padding:12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
     .bot-card button { margin-left:5px; margin-top:5px; cursor:pointer; padding:5px 10px; border:none; border-radius:5px; background:#4f99ff; color:#fff; }
     .bot-status { font-weight:bold; color:#fff; margin-left:10px; }
-    .create-file { background:#38384d; padding:15px; border-radius:8px; margin-top:20px; }
-    .create-file input, .create-file textarea { width:100%; margin:5px 0; padding:8px; border-radius:6px; border:none; }
+    .create-file, .edit-file { background:#38384d; padding:15px; border-radius:8px; margin-top:20px; }
+    .create-file input, .create-file textarea, .edit-file textarea { width:100%; margin:5px 0; padding:8px; border-radius:6px; border:none; }
     @media(max-width:600px) { .bot-card{ flex-direction:column; align-items:flex-start;} .bot-card span{ margin-top:5px; } }
   </style>
 </head>
 <body>
-  <nav>
-    <div><strong>BotZone Panel</strong></div>
-    <div>
-      <a href="/">Home</a>
-      <a href="login.html">Logout</a>
-    </div>
-  </nav>
+<nav>
+  <div><strong>BotZone Panel</strong></div>
+  <div>
+    <a href="/">Home</a>
+    <a href="login.html">Logout</a>
+  </div>
+</nav>
 
-  <div class="container">
-    <div class="dashboard-header">
-      <h1>Welcome to your Dashboard</h1>
-      <span id="panelStatus"></span>
-    </div>
-
-    <!-- Instructions -->
-    <div class="instruction"><div class="arrow">➤</div><p>Upload your bot (.js) using the form below.</p></div>
-    <div class="instruction"><div class="arrow">➤</div><p>Your uploaded bots will appear in the list below.</p></div>
-    <div class="instruction"><div class="arrow">➤</div><p>Click Start/Stop to manage your bots instantly.</p></div>
-
-    <!-- Upload Form -->
-    <h3>Upload Bot</h3>
-    <form id="uploadForm" enctype="multipart/form-data">
-      <input type="file" name="botfile" required>
-      <input type="hidden" name="username" id="usernameInput">
-      <button type="submit">Upload Bot</button>
-    </form>
-
-    <!-- Create New File -->
-    <div class="create-file">
-      <h3>Create New File</h3>
-      <form id="createFileForm">
-        <input type="text" id="newFileName" placeholder="Filename (example.js)" required>
-        <textarea id="newFileContent" rows="5" placeholder="// Bot code here"></textarea>
-        <button type="submit">Create File</button>
-      </form>
-    </div>
-
-    <!-- Bots List -->
-    <h3>Uploaded Bots</h3>
-    <ul class="bot-list" id="botList"></ul>
+<div class="container">
+  <div class="dashboard-header">
+    <h1>Welcome to your Dashboard</h1>
+    <span id="panelStatus"></span>
   </div>
 
-  <script src="dashboard.js"></script>
+  <!-- Instructions -->
+  <div class="instruction"><div class="arrow">➤</div><p>Upload your bot (.js) using the form below.</p></div>
+  <div class="instruction"><div class="arrow">➤</div><p>Create or edit bot files directly in your dashboard.</p></div>
+  <div class="instruction"><div class="arrow">➤</div><p>Click Start/Stop to manage your bots instantly.</p></div>
+
+  <!-- Upload Form -->
+  <h3>Upload Bot</h3>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="botfile" required>
+    <input type="hidden" name="username" id="usernameInput">
+    <button type="submit">Upload Bot</button>
+  </form>
+
+  <!-- Create New File -->
+  <div class="create-file">
+    <h3>Create New File</h3>
+    <form id="createFileForm">
+      <input type="text" id="newFileName" placeholder="Filename (example.js)" required>
+      <textarea id="newFileContent" rows="5" placeholder="// Bot code here"></textarea>
+      <button type="submit">Create File</button>
+    </form>
+  </div>
+
+  <!-- Edit File Form (hidden initially) -->
+  <div class="edit-file" style="display:none;">
+    <h3>Edit File: <span id="editingFileName"></span></h3>
+    <textarea id="editFileContent" rows="10"></textarea>
+    <button id="saveEditBtn">Save Changes</button>
+    <button id="cancelEditBtn">Cancel</button>
+  </div>
+
+  <!-- Bots List -->
+  <h3>Uploaded Bots</h3>
+  <ul class="bot-list" id="botList"></ul>
+</div>
+
+<script src="dashboard.js"></script>
 </body>
 </html>

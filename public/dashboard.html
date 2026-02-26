@@ -1,95 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>BotZone Dashboard</title>
+<title>Dashboard</title>
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:white}
-.sidebar{width:220px;height:100vh;background:#020617;position:fixed;padding:20px}
-.main{margin-left:240px;padding:20px}
-.card{background:#1e293b;padding:15px;border-radius:10px;margin-bottom:15px}
-button{padding:5px 10px;border:none;border-radius:5px}
+header{background:#020617;padding:15px;text-align:center}
+.container{padding:20px}
+.card{background:#020617;padding:20px;border-radius:12px;margin:10px}
+button{padding:8px 15px;border:none;border-radius:6px;margin:5px}
 .start{background:#22c55e}
-.stop{background:#ef4444;color:white}
-.upload{background:#38bdf8}
-.log{background:black;color:lime;height:200px;overflow:auto;padding:10px}
+.stop{background:#ef4444}
 </style>
 </head>
 <body>
 
-<div class="sidebar">
-<h2>BotZone</h2>
-<p>Dashboard</p>
-<p>Bots</p>
-<p>Logs</p>
-</div>
+<header><h2>User Dashboard</h2></header>
 
-<div class="main">
-<h2>Dashboard</h2>
-
+<div class="container">
 <div class="card">
-<input id="user" placeholder="Username">
-<input type="file" id="files" multiple>
-<button class="upload" onclick="upload()">Upload Bot</button>
-</div>
-
-<div class="card">
-<h3>Your Bots</h3>
-<ul id="botList"></ul>
-</div>
-
-<div class="card">
-<h3>Logs</h3>
-<pre class="log" id="logs"></pre>
+<h3>My Bot</h3>
+<p>Status: Offline</p>
+<button class="start">Start</button>
+<button class="stop">Stop</button>
 </div>
 </div>
 
-<script>
-const params=new URLSearchParams(location.search);
-document.getElementById("user").value=params.get("user");
-
-async function upload(){
-  const user=document.getElementById("user").value;
-  const files=document.getElementById("files").files;
-  const form=new FormData();
-
-  for(let f of files) form.append("files",f);
-  form.append("user",user);
-  form.append("bot","mybot");
-
-  await fetch("/upload",{method:"POST",body:form});
-  loadBots();
-}
-
-async function loadBots(){
-  const user=document.getElementById("user").value;
-  const res=await fetch("/bots/"+user);
-  const bots=await res.json();
-  botList.innerHTML="";
-
-  bots.forEach(bot=>{
-    botList.innerHTML+=`
-    <li>${bot}
-    <button class="start" onclick="startBot('${bot}')">Start</button>
-    <button class="stop" onclick="stopBot('${bot}')">Stop</button>
-    <button onclick="viewLogs('${bot}')">Logs</button>
-    </li>`;
-  });
-}
-
-async function startBot(bot){
-  await fetch("/start",{method:"POST",headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({user:user.value,bot})});
-}
-
-async function stopBot(bot){
-  await fetch("/stop",{method:"POST",headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({bot})});
-}
-
-async function viewLogs(bot){
-  const res=await fetch("/logs/"+bot);
-  logs.innerText=await res.text();
-}
-</script>
 </body>
 </html>

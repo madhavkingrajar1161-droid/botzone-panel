@@ -1,74 +1,95 @@
-/* Modern clean panel styles */
+/* General body */
 body {
+  margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #1f1f2e;
   color: #fff;
-  margin: 0;
-  padding: 0;
 }
 
-a {
+/* Navbar */
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background: #2b2b3e;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+}
+nav a {
   color: #4f99ff;
   text-decoration: none;
+  margin-left: 20px;
+  font-weight: bold;
 }
 
+/* Container card */
+.container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #2b2b3e;
+  border-radius: 12px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+}
+
+/* Headings */
 h1, h2, h3 {
   color: #fff;
 }
 
-.container {
-  width: 90%;
-  max-width: 800px;
-  margin: 30px auto;
-  padding: 20px;
-  background: #2b2b3e;
-  border-radius: 10px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+/* Buttons */
+button {
+  padding: 10px 20px;
+  margin-top: 10px;
+  background: linear-gradient(90deg, #4f99ff, #3676e6);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button:hover {
+  transform: translateY(-2px);
 }
 
-input, button {
+/* Inputs */
+input {
+  width: 100%;
   padding: 10px;
   margin: 5px 0;
-  border-radius: 5px;
+  border-radius: 8px;
   border: none;
 }
 
-input {
-  width: 100%;
-}
-
-button {
-  background: #4f99ff;
-  color: #fff;
-  cursor: pointer;
-  width: 100%;
-  transition: 0.2s;
-}
-
-button:hover {
-  background: #3676e6;
-}
-
-nav {
+/* Instructions arrows */
+.instruction {
   display: flex;
-  justify-content: space-between;
-  padding: 10px 30px;
-  background: #2b2b3e;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  align-items: center;
+  margin: 15px 0;
+}
+.arrow {
+  font-size: 25px;
+  margin-right: 10px;
+  color: #4f99ff;
+  transform: rotate(90deg);
+}
+.instruction p {
+  margin: 0;
+  color: #ddd;
+  font-size: 16px;
 }
 
-nav a {
-  margin-left: 20px;
-}
-
+/* Bot list cards */
 .bot-list {
   list-style: none;
   padding: 0;
 }
-
 .bot-list li {
   background: #38384d;
+  padding: 12px;
   margin: 10px 0;
-  padding: 10px;
-  border-radius: 5px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

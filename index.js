@@ -17,11 +17,10 @@ app.use(express.static("public"));
 if (!fs.existsSync("users.json")) fs.writeFileSync("users.json", "[]");
 if (!fs.existsSync("bots")) fs.mkdirSync("bots");
 
-// Multer storage
+// Multer storage for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const user = req.body.username;
-    const userPath = path.join("bots", user);
+    const userPath = path.join("bots", req.body.username);
     if (!fs.existsSync(userPath)) fs.mkdirSync(userPath, { recursive: true });
     cb(null, userPath);
   },
@@ -29,11 +28,15 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Keep track of running bots
+// Running bots tracker
 const runningBots = {}; // { username_botname: child_process }
 
+// -------- ROUTES --------
+
+// Home page
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public/index.html")));
-app.get("/dashboard", (req, res) => res.sendFile(path.join(__dirname, "public/dashboard.html")));
+
+// Status
 app.get("/status", (req, res) => {
   res.json({
     status: "online",
@@ -46,10 +49,10 @@ app.get("/status", (req, res) => {
 // Register
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password) return res.send("Missing fields");
+  if(!username || !password) return res.send("Missing fields");
 
   const users = JSON.parse(fs.readFileSync("users.json"));
-  if (users.find(u => u.username === username)) return res.send("User exists");
+  if(users.find(u => u.username === username)) return res.send("User already exists");
 
   const hash = await bcrypt.hash(password, 10);
   users.push({ username, password: hash });
@@ -65,23 +68,23 @@ app.post("/login", async (req, res) => {
   const users = JSON.parse(fs.readFileSync("users.json"));
   const user = users.find(u => u.username === username);
 
-  if (!user) return res.send("User not found");
+  if(!user) return res.send("User not found");
   const ok = await bcrypt.compare(password, user.password);
-  if (!ok) return res.send("Wrong password");
+  if(!ok) return res.send("Wrong password");
 
   res.redirect(`/dashboard.html?user=${username}`);
 });
 
 // Upload bot
 app.post("/upload", upload.single("botfile"), (req, res) => {
-  if (!req.file) return res.send("No file uploaded");
+  if(!req.file) return res.send("No file uploaded");
   res.send("Bot uploaded successfully");
 });
 
-// Get user bots (AJAX)
+// Get user bots
 app.get("/bots/:username", (req, res) => {
   const userPath = path.join("bots", req.params.username);
-  if (!fs.existsSync(userPath)) return res.json([]);
+  if(!fs.existsSync(userPath)) return res.json([]);
   const bots = fs.readdirSync(userPath);
   const botStatus = bots.map(bot => ({
     name: bot,
@@ -94,9 +97,9 @@ app.get("/bots/:username", (req, res) => {
 app.post("/start", (req, res) => {
   const { username, botname } = req.body;
   const botPath = path.join(__dirname, "bots", username, botname);
-  if (!fs.existsSync(botPath)) return res.send("Bot not found");
+  if(!fs.existsSync(botPath)) return res.send("Bot not found");
   const key = `${username}_${botname}`;
-  if (runningBots[key]) return res.send("Bot already running");
+  if(runningBots[key]) return res.send("Bot already running");
 
   const child = spawn("node", [botPath], { stdio: "ignore", detached: true });
   child.unref();
@@ -109,13 +112,29 @@ app.post("/stop", (req, res) => {
   const { username, botname } = req.body;
   const key = `${username}_${botname}`;
   const child = runningBots[key];
-  if (!child) return res.send("Bot not running");
+  if(!child) return res.send("Bot not running");
 
   process.kill(-child.pid);
   delete runningBots[key];
   res.send("Bot stopped");
 });
 
+// Create new file
+app.post("/create-file", (req, res) => {
+  const { username, filename, content } = req.body;
+  if(!username || !filename) return res.send("Missing username or filename");
+
+  const userPath = path.join("bots", username);
+  if(!fs.existsSync(userPath)) fs.mkdirSync(userPath, { recursive: true });
+
+  const filePath = path.join(userPath, filename);
+  if(fs.existsSync(filePath)) return res.send("File already exists");
+
+  fs.writeFileSync(filePath, content || '');
+  res.send(`File ${filename} created successfully`);
+});
+
+// Start server
 app.listen(PORT, () => {
   console.log("==================================");
   console.log("BotZone Panel is running");

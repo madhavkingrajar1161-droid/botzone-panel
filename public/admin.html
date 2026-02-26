@@ -1,10 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Panel</title>
+<title>Admin Panel</title>
+<style>
+body{background:#0f172a;color:white;font-family:Arial}
+.card{background:#1e293b;padding:15px;border-radius:10px;margin:20px}
+button{background:red;color:white;padding:5px}
+</style>
 </head>
 <body>
-  <h2>Admin Dashboard</h2>
-  <p>You are admin.</p>
+
+<h2>Admin Panel</h2>
+
+<div class="card">
+<h3>Users</h3>
+<ul id="users"></ul>
+</div>
+
+<script>
+async function loadUsers(){
+  const res=await fetch("/admin/users");
+  const users=await res.json();
+  usersEl.innerHTML="";
+  users.forEach(u=>{
+    usersEl.innerHTML+=`
+    <li>${u.username}
+    <button onclick="deleteUser('${u.username}')">Delete</button>
+    </li>`;
+  });
+}
+
+async function deleteUser(username){
+  await fetch("/admin/deleteUser",{method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({username})});
+  loadUsers();
+}
+
+loadUsers();
+</script>
 </body>
 </html>

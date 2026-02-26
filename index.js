@@ -1,67 +1,90 @@
 const express = require("express");
 const fs = require("fs");
-const app = express();
+const multer = require("multer");
+const { spawn } = require("child_process");
 
+const app = express();
 const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use(express.static("public"));
 
-const USERS_FILE = "./users.json";
+if (!fs.existsSync("bots")) fs.mkdirSync("bots");
 
-function loadUsers() {
-  if (!fs.existsSync(USERS_FILE)) return [];
-  return JSON.parse(fs.readFileSync(USERS_FILE));
-}
+let runningBots = {};
+let botLogs = {};
 
-function saveUsers(users) {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-}
-
-// STATUS
-app.get("/status", (req, res) => {
-  res.json({
-    status: "online",
-    port: PORT,
-    time: new Date()
-  });
+// ---------- STATUS ----------
+app.get("/status", (req,res)=>{
+  res.json({status:"online", port:PORT});
 });
 
-// REGISTER
-app.post("/register", (req, res) => {
-  const { username, password } = req.body;
-
-  const users = loadUsers();
-
-  if (users.find(u => u.username === username)) {
-    return res.send("User already exists");
+// ---------- UPLOAD ----------
+const storage = multer.diskStorage({
+  destination: (req,file,cb)=>{
+    const user = req.body.username;
+    const dir = `bots/${user}`;
+    if(!fs.existsSync(dir)) fs.mkdirSync(dir,{recursive:true});
+    cb(null, dir);
+  },
+  filename: (req,file,cb)=>{
+    cb(null,file.originalname);
   }
+});
+const upload = multer({storage});
 
-  users.push({
-    username,
-    password,
-    admin: false
+app.post("/upload", upload.array("files"), (req,res)=>{
+  res.send("Uploaded");
+});
+
+// ---------- LIST BOTS ----------
+app.get("/bots/:user",(req,res)=>{
+  const dir = `bots/${req.params.user}`;
+  if(!fs.existsSync(dir)) return res.json([]);
+  res.json(fs.readdirSync(dir));
+});
+
+// ---------- START BOT ----------
+app.post("/start",(req,res)=>{
+  const {user,file} = req.body;
+  const path = `bots/${user}/${file}`;
+
+  if(!fs.existsSync(path)) return res.send("File not found");
+  if(runningBots[file]) return res.send("Already running");
+
+  const proc = spawn("node",[path]);
+  runningBots[file] = proc;
+  botLogs[file] = "";
+
+  proc.stdout.on("data",data=>{
+    botLogs[file] += data.toString();
+  });
+  proc.stderr.on("data",data=>{
+    botLogs[file] += data.toString();
+  });
+  proc.on("close",()=>{
+    delete runningBots[file];
   });
 
-  saveUsers(users);
-  res.send("Registered");
+  res.send("Started");
 });
 
-// LOGIN
-app.post("/login", (req, res) => {
-  const { username, password } = req.body;
+// ---------- STOP BOT ----------
+app.post("/stop",(req,res)=>{
+  const {file} = req.body;
+  if(!runningBots[file]) return res.send("Not running");
 
-  const users = loadUsers();
-  const user = users.find(u => u.username === username && u.password === password);
-
-  if (!user) return res.send("Invalid login");
-
-  if (user.admin) return res.send("Admin");
-
-  res.send("User");
+  runningBots[file].kill();
+  delete runningBots[file];
+  res.send("Stopped");
 });
 
-// START SERVER
-app.listen(PORT, () => {
-  console.log("BotZone Panel running on port " + PORT);
+// ---------- LOGS ----------
+app.get("/logs/:file",(req,res)=>{
+  res.send(botLogs[req.params.file] || "");
+});
+
+// ---------- START SERVER ----------
+app.listen(PORT,()=>{
+  console.log("BotZone Panel running on port "+PORT);
 });
